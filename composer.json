@@ -1,0 +1,24 @@
+{
+  "name": "game-worker/kiri-crontab",
+  "description": "db",
+  "authors": [
+    {
+      "name": "XiangLin",
+      "email": "as2252258@163.com"
+    }
+  ],
+  "license": "MIT",
+  "require": {
+    "php": ">=8.0",
+    "ext-json": "*",
+    "psr/event-dispatcher": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Kiri\\Crontab\\": "src/"
+     }
+  },
+  "require-dev": {
+    "kwn/php-rdkafka-stubs": "^2.0"
+  }
+}
