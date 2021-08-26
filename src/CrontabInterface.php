@@ -17,4 +17,8 @@ interface CrontabInterface
 	 */
 	public function isStop(): bool;
 
+
+
+	public function process(): void;
+
 }
