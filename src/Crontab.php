@@ -136,9 +136,11 @@ abstract class Crontab implements PipeMessage, CrontabInterface, \Serializable
         try {
             $redis = $this->application->getRedis();
             $name_md5 = $this->getName();
+
+            defer(fn() => $this->onRecover($name_md5));
+
             call_user_func([$this, 'process']);
             $redis->hDel(self::WAIT_END, $name_md5);
-            $this->onRecover($name_md5);
         } catch (\Throwable $throwable) {
             $this->application->addError($throwable, 'throwable');
         }
@@ -153,20 +155,24 @@ abstract class Crontab implements PipeMessage, CrontabInterface, \Serializable
      */
     private function onRecover($name_md5)
     {
-        $redis = $this->application->getRedis();
+        try {
+            $redis = $this->application->getRedis();
 
-        /** @var \Kiri\Crontab\Producer $crontab */
-        $crontab = Kiri::getFactory()->get('crontab');
-        if ($redis->sIsMember(Producer::CRONTAB_STOP_KEY, $name_md5)) {
-            var_dump('is exec Stop');
-            return $redis->sRem(Producer::CRONTAB_STOP_KEY, $name_md5);
+            /** @var \Kiri\Crontab\Producer $crontab */
+            $crontab = Kiri::getFactory()->get('crontab');
+            if ($redis->sIsMember(Producer::CRONTAB_STOP_KEY, $name_md5)) {
+                var_dump('is exec Stop');
+                return $redis->sRem(Producer::CRONTAB_STOP_KEY, $name_md5);
+            }
+            if ($this->isPropagationStopped()) {
+                var_dump('is auto Stop');
+                return true;
+            }
+            var_dump('is add task');
+            return $crontab->task($this);
+        } catch (\Throwable $throwable) {
+            var_dump($throwable);
         }
-        if ($this->isPropagationStopped()) {
-            var_dump('is auto Stop');
-            return true;
-        }
-        var_dump('is add task');
-        return $crontab->task($this);
     }
 
 
