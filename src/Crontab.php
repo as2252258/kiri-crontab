@@ -140,7 +140,9 @@ abstract class Crontab implements PipeMessage, CrontabInterface, \Serializable
             defer(fn() => $this->onRecover($name_md5));
 
             call_user_func([$this, 'process']);
+
             $redis->hDel(self::WAIT_END, $name_md5);
+            echo date('Y-m-d H:i:s');
         } catch (\Throwable $throwable) {
             $this->application->addError($throwable, 'throwable');
         }
@@ -156,6 +158,8 @@ abstract class Crontab implements PipeMessage, CrontabInterface, \Serializable
     private function onRecover($name_md5)
     {
         try {
+            echo date('Y-m-d H:i:s');
+
             $redis = $this->application->getRedis();
 
             /** @var \Kiri\Crontab\Producer $crontab */
