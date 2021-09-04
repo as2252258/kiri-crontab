@@ -40,7 +40,9 @@ class Producer extends Component
         $redis->zRem(Producer::CRONTAB_KEY, $name);
 
         $redis->zAdd(Producer::CRONTAB_KEY, time() + $crontab->getTickTime(), $name);
-        return $redis->set(Producer::CRONTAB_PREFIX . $name, swoole_serialize($crontab));
+
+        var_dump(Producer::CRONTAB_PREFIX . $name, $crontab->serialize());
+        return $redis->set(Producer::CRONTAB_PREFIX . $name, $crontab->serialize());
     }
 
 
