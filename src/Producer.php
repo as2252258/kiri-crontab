@@ -17,6 +17,7 @@ class Producer extends Component
 {
 
     const CRONTAB_KEY = '_application:{crontab}:system:crontab';
+    const CRONTAB_RUING_KEY = '_application:{crontab}:system:crontab:execute:ing';
 
 
     /**
