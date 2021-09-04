@@ -138,6 +138,8 @@ abstract class Crontab implements CrontabInterface, \Serializable
 
             call_user_func([$this, 'execute']);
 
+            $this->tickTime = time();
+
             $redis->hDel(self::WAIT_END, $name_md5);
         } catch (\Throwable $throwable) {
             $this->application->addError($throwable, 'throwable');
