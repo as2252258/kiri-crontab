@@ -164,6 +164,7 @@ abstract class Crontab implements CrontabInterface, \Serializable
         if ($this->isPropagationStopped()) {
             return true;
         }
+        var_dump(1111);
         return $crontab->task($this);
     }
 
