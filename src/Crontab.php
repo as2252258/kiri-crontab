@@ -20,19 +20,19 @@ abstract class Crontab implements CrontabInterface, \Serializable
     const WAIT_END = 'crontab:wait:execute';
 
 
-    private string $name = '';
+    protected string $name = '';
 
 
-    private mixed $params;
+    protected mixed $params;
 
 
-    private int $tickTime;
+    protected int $tickTime;
 
 
-    private bool $isLoop;
+    protected bool $isLoop;
 
 
-    private int $timerId = -1;
+    protected int $timerId = -1;
 
 
     /**
