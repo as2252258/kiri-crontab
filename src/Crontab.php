@@ -6,18 +6,15 @@ namespace Kiri\Crontab;
 
 use Exception;
 use JetBrains\PhpStorm\Pure;
-use Psr\EventDispatcher\StoppableEventInterface;
-use Server\SInterface\PipeMessage;
 use Kiri\Application;
 use Kiri\Kiri;
-use Swoole\Timer;
 
 /**
  * Class Async
  * @package Kiri
  * @property Application $application
  */
-abstract class Crontab implements PipeMessage, CrontabInterface, \Serializable
+abstract class Crontab implements CrontabInterface, \Serializable
 {
 
     const WAIT_END = 'crontab:wait:execute';
@@ -131,7 +128,7 @@ abstract class Crontab implements PipeMessage, CrontabInterface, \Serializable
     /**
      * @throws Exception
      */
-    public function execute(): void
+    public function process(): void
     {
         try {
             $redis = $this->application->getRedis();
@@ -139,7 +136,7 @@ abstract class Crontab implements PipeMessage, CrontabInterface, \Serializable
 
             defer(fn() => $this->onRecover($name_md5));
 
-            call_user_func([$this, 'process']);
+            call_user_func([$this, 'execute']);
 
             $redis->hDel(self::WAIT_END, $name_md5);
             echo date('Y-m-d H:i:s');
