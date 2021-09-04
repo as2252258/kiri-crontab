@@ -14,7 +14,7 @@ use Kiri\Kiri;
  * @package Kiri
  * @property Application $application
  */
-abstract class Crontab implements CrontabInterface, \Serializable
+abstract class Crontab implements CrontabInterface
 {
 
     const WAIT_END = 'crontab:wait:execute';
@@ -164,7 +164,6 @@ abstract class Crontab implements CrontabInterface, \Serializable
         if ($this->isPropagationStopped()) {
             return true;
         }
-        var_dump(1111);
         return $crontab->task($this);
     }
 
@@ -179,29 +178,10 @@ abstract class Crontab implements CrontabInterface, \Serializable
 
 
     /**
-     * @return string
-     */
-    public function serialize(): string
-    {
-        return serialize($this);
-    }
-
-
-    /**
-     * @param string $data
-     * @return mixed
-     */
-    public function unserialize($data): mixed
-    {
-        return unserialize($data);
-    }
-
-
-    /**
      * @param $class
      * @return string
      */
-    public static function getSerialize($class): string
+    public static function serialize($class): string
     {
         return serialize($class);
     }
