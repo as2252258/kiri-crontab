@@ -20,19 +20,19 @@ abstract class Crontab implements CrontabInterface, \Serializable
     const WAIT_END = 'crontab:wait:execute';
 
 
-    protected string $name = '';
+    public string $name = '';
 
 
-    protected mixed $params;
+    public mixed $params;
 
 
-    protected int $tickTime;
+    public int $tickTime;
 
 
-    protected bool $isLoop;
+    public bool $isLoop;
 
 
-    protected int $timerId = -1;
+    public int $timerId = -1;
 
 
     /**
@@ -139,7 +139,6 @@ abstract class Crontab implements CrontabInterface, \Serializable
             call_user_func([$this, 'execute']);
 
             $redis->hDel(self::WAIT_END, $name_md5);
-            echo date('Y-m-d H:i:s');
         } catch (\Throwable $throwable) {
             $this->application->addError($throwable, 'throwable');
         }
@@ -152,28 +151,18 @@ abstract class Crontab implements CrontabInterface, \Serializable
      * @throws \ReflectionException
      * @throws \Exception
      */
-    private function onRecover($name_md5)
+    protected function onRecover($name_md5)
     {
-        try {
-            echo date('Y-m-d H:i:s');
-
-            $redis = $this->application->getRedis();
-
-            /** @var \Kiri\Crontab\Producer $crontab */
-            $crontab = Kiri::getFactory()->get('crontab');
-            if ($redis->sIsMember(Producer::CRONTAB_STOP_KEY, $name_md5)) {
-                var_dump('is exec Stop');
-                return $redis->sRem(Producer::CRONTAB_STOP_KEY, $name_md5);
-            }
-            if ($this->isPropagationStopped()) {
-                var_dump('is auto Stop');
-                return true;
-            }
-            var_dump('is add task');
-            return $crontab->task($this);
-        } catch (\Throwable $throwable) {
-            var_dump($throwable);
+        $redis = $this->application->getRedis();
+        /** @var \Kiri\Crontab\Producer $crontab */
+        $crontab = Kiri::getFactory()->get('crontab');
+        if ($redis->sIsMember(Producer::CRONTAB_STOP_KEY, $name_md5)) {
+            return $redis->sRem(Producer::CRONTAB_STOP_KEY, $name_md5);
         }
+        if ($this->isPropagationStopped()) {
+            return true;
+        }
+        return $crontab->task($this);
     }
 
 
