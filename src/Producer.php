@@ -30,8 +30,6 @@ class Producer extends Component
     {
         $redis = Kiri::app()->getRedis();
 
-        var_dump($crontab);
-
         $name = $crontab->getName();
         if ($redis->exists(self::CRONTAB_KEY) && $redis->type(self::CRONTAB_KEY) !== \Redis::REDIS_ZSET) {
             throw new Exception('Cache key ' . self::CRONTAB_KEY . ' types error.');
