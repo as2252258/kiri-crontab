@@ -4,6 +4,8 @@
 namespace Kiri\Crontab;
 
 
+use JetBrains\PhpStorm\Pure;
+
 /**
  * Class DefaultCrontab
  * @package Kiri\Crontab
@@ -11,59 +13,27 @@ namespace Kiri\Crontab;
 class DefaultCrontab extends Crontab
 {
 
-	public bool $isLoop = false;
+
+    public int $searchNum = 0;
 
 
-	public int|string $year = '*';
-
-	public int|string $month = '*';
-
-	public int|string $day = '*';
-
-	public int|string $hour = '*';
-
-
-	public int|string $minute = '*';
-
-	public int|string $second = '*';
+    /**
+     *
+     */
+    public function process(): void
+    {
+        $this->searchNum += 1;
+    }
 
 
-	public function oq()
-	{
-		return [
-			'year'   => $this->year == '*' ? date('Y') : '*',
-			'month'  => $this->month == '*' ? date('m') : '*',
-			'day'    => $this->day == '*' ? date('d') : '*',
-			'hour'   => $this->hour == '*' ? date('H') : '*',
-			'minute' => $this->minute == '*' ? date('i') : '*',
-			'second' => $this->second == '*' ? date('s') : '*',
-		];
-	}
-
-
-	/**
-	 * @return bool
-	 */
-	public function isStop(): bool
-	{
-		return true;
-	}
-
-
-	/**
-	 *
-	 */
-	public function process(): void
-	{
-		// TODO: Implement process() method.
-	}
-
-
-	/**
-	 *
-	 */
-	public function onMaxExecute(): void
-	{
-		// TODO: Implement max_execute() method.
-	}
+    /**
+     *
+     */
+    #[Pure] public function isPropagationStopped(): bool
+    {
+        if ($this->searchNum >= 50) {
+            return true;
+        }
+        return !$this->isLoop();
+    }
 }

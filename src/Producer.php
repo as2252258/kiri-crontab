@@ -17,14 +17,16 @@ class Producer extends Component
 {
 
     const CRONTAB_KEY = '_application:{crontab}:system:crontab';
-    const CRONTAB_RUING_KEY = '_application:{crontab}:system:crontab:execute:ing';
+    const CRONTAB_STOP_KEY = '_application:{crontab}:system:stop:crontab';
+    const CRONTAB_PREFIX = 'CRONTAB:';
 
 
     /**
      * @param Crontab $crontab
-     * @throws Exception
+     * @return bool
+     * @throws \Exception
      */
-    public function dispatch(Crontab $crontab)
+    public function task(Crontab $crontab)
     {
         $redis = Kiri::app()->getRedis();
 
@@ -33,13 +35,12 @@ class Producer extends Component
             throw new Exception('Cache key ' . self::CRONTAB_KEY . ' types error.');
         }
 
-        $redis->del('stop:crontab:' . $name);
+        $redis->del(Producer::CRONTAB_PREFIX . $name);
+        $redis->sRem(Producer::CRONTAB_STOP_KEY, $name);
+        $redis->zRem(Producer::CRONTAB_KEY, $name);
 
-        $redis->del('crontab:' . $name);
-        $redis->zRem(static::CRONTAB_KEY, $name);
-
-        $redis->zAdd(self::CRONTAB_KEY, time() + $crontab->getTickTime(), $name);
-        $redis->set('crontab:' . $name, swoole_serialize($crontab));
+        $redis->zAdd(Producer::CRONTAB_KEY, time() + $crontab->getTickTime(), $name);
+        return $redis->set(Producer::CRONTAB_PREFIX . $name, swoole_serialize($crontab));
     }
 
 
@@ -49,30 +50,32 @@ class Producer extends Component
      */
     public function clear(string $name)
     {
+        $name = md5($name);
+
         $redis = Kiri::app()->getRedis();
+        $redis->sAdd(Producer::CRONTAB_STOP_KEY, $name);
 
-        $redis->del('crontab:' . md5($name));
-        $redis->zRem(static::CRONTAB_KEY, md5($name));
-
-        $redis->setex('stop:crontab:' . md5($name), 120, 1);
+        $redis->del(Producer::CRONTAB_PREFIX . $name);
+        $redis->zRem(Producer::CRONTAB_KEY, $name);
     }
 
 
-	/**
-	 * @param string $name
-	 * @return bool
-	 * @throws Exception
-	 */
+    /**
+     * @param string $name
+     * @return bool
+     * @throws Exception
+     */
     public function exists(string $name): bool
     {
+        $name = md5($name);
         $redis = Kiri::app()->getRedis();
-        if ($redis->exists('crontab:' . md5($name))) {
+        if ($redis->exists(Producer::CRONTAB_PREFIX . $name)) {
             return true;
         }
-        if ($redis->zRank(static::CRONTAB_KEY, md5($name))) {
+        if ($redis->zRank(Producer::CRONTAB_KEY, $name)) {
             return true;
         }
-        if ($redis->hExists(Crontab::WAIT_END, md5($name))) {
+        if ($redis->hExists(Crontab::WAIT_END, $name)) {
             return true;
         }
         return false;
@@ -85,10 +88,10 @@ class Producer extends Component
     public function clearAll()
     {
         $redis = Kiri::app()->getRedis();
-        $data = $redis->zRange(self::CRONTAB_KEY, 0, -1);
+        $data = $redis->zRange(Producer::CRONTAB_KEY, 0, -1);
         foreach ($data as $datum) {
-            $redis->setex('stop:crontab:' . $datum, 120, 1);
-            $redis->del('crontab:' . $datum);
+            $redis->sAdd(Producer::CRONTAB_STOP_KEY, $datum);
+            $redis->del(Producer::CRONTAB_PREFIX . $datum);
         }
         $redis->release();
     }

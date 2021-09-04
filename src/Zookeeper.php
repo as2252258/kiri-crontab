@@ -97,9 +97,11 @@ class Zookeeper extends CustomProcess
 	private function dispatch($value)
 	{
 		try {
-			$handler = $this->redis->get('crontab:' . $value);
+			$handler = $this->redis->get(Producer::CRONTAB_PREFIX . $value);
 			if (!empty($handler)) {
-				$this->manager->sendMessage(swoole_unserialize($handler), $this->getWorker());
+                $this->redis->hSet(Crontab::WAIT_END, $value, $handler);
+                $this->redis->del(Producer::CRONTAB_PREFIX . $value);
+                $this->manager->sendMessage(swoole_unserialize($handler), $this->getWorker());
 			}
 		} catch (Throwable $exception) {
 			$this->logger->addError($exception);

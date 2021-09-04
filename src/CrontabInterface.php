@@ -2,23 +2,14 @@
 
 namespace Kiri\Crontab;
 
-interface CrontabInterface
+use Psr\EventDispatcher\StoppableEventInterface;
+
+interface CrontabInterface extends StoppableEventInterface
 {
 
-
-	/**
-	 *
-	 */
-	public function onMaxExecute(): void;
-
-
-	/**
-	 * @return bool
-	 */
-	public function isStop(): bool;
-
-
-
+    /**
+     *
+     */
 	public function process(): void;
 
 }
