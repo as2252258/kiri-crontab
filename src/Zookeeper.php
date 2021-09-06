@@ -54,15 +54,10 @@ class Zookeeper extends CustomProcess
 	/**
 	 * @param Process $process
 	 * @return string
-	 * @throws ConfigException
 	 */
 	public function getProcessName(Process $process): string
 	{
-		$name = Config::get('id', 'system') . '[' . $process->pid . ']';
-		if (!empty($prefix)) {
-			$name .= '.crontab zookeeper';
-		}
-		return $name;
+		return 'crontab zookeeper';
 	}
 
 
