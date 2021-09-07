@@ -6,10 +6,9 @@ namespace Kiri\Crontab;
 
 use Annotation\Inject;
 use Exception;
-use Kiri\Abstracts\Config;
-use Kiri\Cache\Redis;
 use Kiri\Error\Logger;
 use Kiri\Exception\ConfigException;
+use Kiri\Kiri;
 use Server\Abstracts\CustomProcess;
 use Server\ServerManager;
 use Swoole\Process;
@@ -35,13 +34,6 @@ class Zookeeper extends CustomProcess
 	 */
 	#[Inject(ServerManager::class)]
 	public ?ServerManager $manager = null;
-
-
-	/**
-	 * @var Redis|null
-	 */
-	#[Inject('redis')]
-	public ?Redis $redis = null;
 
 
 	/**
@@ -77,26 +69,28 @@ class Zookeeper extends CustomProcess
 	 */
 	public function loop()
 	{
-		$range = $this->loadCarobTask();
+		$redis = Kiri::app()->getRedis();
+		$range = $this->loadCarobTask($redis);
 		foreach ($range as $value) {
-			$this->dispatch($value);
+			$this->dispatch($value, $redis);
 		}
-		$this->redis->release();
+		$redis->release();
 	}
 
 
 	/**
 	 * @param $value
+	 * @param $redis
 	 * @throws Exception
 	 */
-	private function dispatch($value)
+	private function dispatch($value, $redis)
 	{
 		try {
-			$handler = $this->redis->get(Producer::CRONTAB_PREFIX . $value);
+			$handler = $redis->get(Producer::CRONTAB_PREFIX . $value);
 			if (!empty($handler)) {
-                $this->redis->hSet(Crontab::WAIT_END, $value, $handler);
-                $this->redis->del(Producer::CRONTAB_PREFIX . $value);
-                $this->manager->sendMessage(swoole_unserialize($handler), $this->getWorker());
+				$redis->hSet(Crontab::WAIT_END, $value, $handler);
+				$redis->del(Producer::CRONTAB_PREFIX . $value);
+				$this->manager->sendMessage(swoole_unserialize($handler), $this->getWorker());
 			}
 		} catch (Throwable $exception) {
 			$this->logger->addError($exception);
@@ -119,9 +113,10 @@ class Zookeeper extends CustomProcess
 
 
 	/**
+	 * @param $redis
 	 * @return array
 	 */
-	private function loadCarobTask(): array
+	private function loadCarobTask($redis): array
 	{
 		$script = <<<SCRIPT
 local _two = redis.call('zRangeByScore', KEYS[1], '0', ARGV[1])
@@ -132,7 +127,7 @@ end
 
 return _two
 SCRIPT;
-		return $this->redis->eval($script, [Producer::CRONTAB_KEY, (string)time()], 1);
+		return $redis->eval($script, [Producer::CRONTAB_KEY, (string)time()], 1);
 	}
 
 }
