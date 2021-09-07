@@ -75,7 +75,6 @@ class Zookeeper extends CustomProcess
 		foreach ($range as $value) {
 			$this->dispatch($value, $redis);
 		}
-		$redis->release();
 	}
 
 
