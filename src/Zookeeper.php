@@ -77,11 +77,11 @@ class Zookeeper extends CustomProcess
 	 */
 	public function loop()
 	{
-		defer(fn() => $this->redis->release());
 		$range = $this->loadCarobTask();
 		foreach ($range as $value) {
 			$this->dispatch($value);
 		}
+		$this->redis->release();
 	}
 
 
