@@ -24,9 +24,9 @@ class Producer extends Component
     /**
      * @param Crontab $crontab
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
-    public function task(Crontab $crontab)
+    public function task(Crontab $crontab): bool
     {
         $redis = Kiri::app()->getRedis();
 

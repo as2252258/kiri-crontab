@@ -6,6 +6,7 @@ namespace Kiri\Crontab;
 
 use Annotation\Inject;
 use Exception;
+use Kiri\Cache\Redis;
 use Kiri\Error\Logger;
 use Kiri\Exception\ConfigException;
 use Kiri\Kiri;
@@ -113,21 +114,16 @@ class Zookeeper extends CustomProcess
 
 
 	/**
-	 * @param $redis
+	 * @param Redis|\Redis $redis
 	 * @return array
 	 */
-	private function loadCarobTask($redis): array
+	private function loadCarobTask(Redis|\Redis $redis): array
 	{
-		$script = <<<SCRIPT
-local _two = redis.call('zRangeByScore', KEYS[1], '0', ARGV[1])
-
-if (table.getn(_two) > 0) then
-	redis.call('ZREM', KEYS[1], unpack(_two))
-end
-
-return _two
-SCRIPT;
-		return $redis->eval($script, [Producer::CRONTAB_KEY, (string)time()], 1);
+		$data = $redis->zRangeByScore(Producer::CRONTAB_KEY, 0, time());
+		if (!empty($data)) {
+			$redis->zRem(Producer::CRONTAB_KEY, ...$data);
+		}
+		return $data;
 	}
 
 }
