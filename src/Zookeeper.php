@@ -119,11 +119,16 @@ class Zookeeper extends CustomProcess
 	 */
 	private function loadCarobTask(Redis|\Redis $redis): array
 	{
-		$data = $redis->zRangeByScore(Producer::CRONTAB_KEY, 0, time());
-		if (!empty($data)) {
-			$redis->zRem(Producer::CRONTAB_KEY, ...$data);
-		}
-		return $data;
+		$script = <<<SCRIPT
+local _two = redis.call('zRangeByScore', KEYS[1], '0', ARGV[1])
+
+if (table.getn(_two) > 0) then
+	redis.call('ZREM', KEYS[1], unpack(_two))
+end
+
+return _two
+SCRIPT;
+		return $redis->eval($script, [Producer::CRONTAB_KEY, (string)time()], 1);
 	}
 
 }
