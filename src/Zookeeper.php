@@ -70,7 +70,7 @@ class Zookeeper extends CustomProcess
 	 */
 	public function loop()
 	{
-		$redis = Kiri::app()->getRedis();
+		$redis = Kiri::getDi()->get(Redis::class);
 		$range = $this->loadCarobTask($redis);
 		foreach ($range as $value) {
 			$this->dispatch($value, $redis);

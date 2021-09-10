@@ -6,6 +6,7 @@ namespace Kiri\Crontab;
 
 use Exception;
 use Kiri\Abstracts\Component;
+use Kiri\Cache\Redis;
 use Kiri\Kiri;
 
 
@@ -28,7 +29,7 @@ class Producer extends Component
      */
     public function task(Crontab $crontab): bool
     {
-        $redis = Kiri::app()->getRedis();
+        $redis = Kiri::getDi()->get(Redis::class);
 
         $name = $crontab->getName();
         if ($redis->exists(self::CRONTAB_KEY) && $redis->type(self::CRONTAB_KEY) !== \Redis::REDIS_ZSET) {
@@ -53,7 +54,7 @@ class Producer extends Component
     {
         $name = md5($name);
 
-        $redis = Kiri::app()->getRedis();
+        $redis = Kiri::getDi()->get(Redis::class);
         $redis->sAdd(Producer::CRONTAB_STOP_KEY, $name);
 
         $redis->del(Producer::CRONTAB_PREFIX . $name);
@@ -69,7 +70,7 @@ class Producer extends Component
     public function exists(string $name): bool
     {
         $name = md5($name);
-        $redis = Kiri::app()->getRedis();
+        $redis = Kiri::getDi()->get(Redis::class);
         if ($redis->exists(Producer::CRONTAB_PREFIX . $name)) {
             return true;
         }
@@ -88,7 +89,7 @@ class Producer extends Component
      */
     public function clearAll()
     {
-        $redis = Kiri::app()->getRedis();
+        $redis = Kiri::getDi()->get(Redis::class);
         $data = $redis->zRange(Producer::CRONTAB_KEY, 0, -1);
         foreach ($data as $datum) {
             $redis->sAdd(Producer::CRONTAB_STOP_KEY, $datum);

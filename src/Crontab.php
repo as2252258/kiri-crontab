@@ -7,6 +7,7 @@ namespace Kiri\Crontab;
 use Exception;
 use JetBrains\PhpStorm\Pure;
 use Kiri\Application;
+use Kiri\Cache\Redis;
 use Kiri\Exception\NotFindClassException;
 use Kiri\Kiri;
 use ReflectionException;
@@ -133,7 +134,7 @@ abstract class Crontab implements CrontabInterface
 	public function process(): void
 	{
 		try {
-			$redis = $this->application->getRedis();
+			$redis = Kiri::getDi()->get(Redis::class);
 
 			$name_md5 = $this->getName();
 
@@ -157,7 +158,7 @@ abstract class Crontab implements CrontabInterface
 	 */
 	protected function onRecover($name_md5): bool|int
 	{
-		$redis = $this->application->getRedis();
+		$redis = Kiri::getDi()->get(Redis::class);
 		/** @var Producer $crontab */
 		$crontab = Kiri::getFactory()->get('crontab');
 		if ($redis->sIsMember(Producer::CRONTAB_STOP_KEY, $name_md5)) {
