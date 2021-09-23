@@ -3,9 +3,9 @@
 namespace Kiri\Crontab;
 
 use Psr\EventDispatcher\StoppableEventInterface;
-use Server\SInterface\PipeMessage;
+use Server\SInterface\OnPipeMessageInterface;
 
-interface CrontabInterface extends StoppableEventInterface, PipeMessage
+interface CrontabInterface extends StoppableEventInterface, OnPipeMessageInterface
 {
 
     /**
