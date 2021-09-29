@@ -159,8 +159,7 @@ abstract class Crontab implements CrontabInterface
 	protected function onRecover($name_md5): bool|int
 	{
 		$redis = Kiri::getDi()->get(Redis::class);
-		/** @var Producer $crontab */
-		$crontab = Kiri::getFactory()->get('crontab');
+		$crontab = Kiri::getDi()->get(Producer::class);
 		if ($redis->sIsMember(Producer::CRONTAB_STOP_KEY, $name_md5)) {
 			return $redis->sRem(Producer::CRONTAB_STOP_KEY, $name_md5);
 		}
