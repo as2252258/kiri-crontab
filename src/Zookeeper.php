@@ -10,7 +10,7 @@ use Kiri\Cache\Redis;
 use Kiri\Error\Logger;
 use Kiri\Exception\ConfigException;
 use Kiri\Kiri;
-use Server\Abstracts\OnProcessInterface;
+use Server\Abstracts\BaseProcess;
 use Server\ServerManager;
 use Swoole\Process;
 use Swoole\Timer;
@@ -20,7 +20,7 @@ use Throwable;
  * Class Zookeeper
  * @package Kiri\Process
  */
-class Zookeeper extends OnProcessInterface
+class Zookeeper extends BaseProcess
 {
 
 
