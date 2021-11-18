@@ -29,7 +29,7 @@ class Zookeeper extends BaseProcess
 	 */
 	private int $workerNum = 0;
 
-    public string $name = 'crontab';
+    public string $name = 'crontab zookeeper';
 
 
 	/**
@@ -48,19 +48,9 @@ class Zookeeper extends BaseProcess
 
 	/**
 	 * @param Process $process
-	 * @return string
-	 */
-	public function getProcessName(Process $process): string
-	{
-		return 'crontab zookeeper';
-	}
-
-
-	/**
-	 * @param Process $process
 	 * @throws Exception
 	 */
-	public function onHandler(Process $process): void
+	public function onProcessExec(Process $process): void
 	{
 		Timer::tick(300, [$this, 'loop']);
 	}
