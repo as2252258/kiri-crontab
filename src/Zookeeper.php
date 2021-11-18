@@ -50,7 +50,7 @@ class Zookeeper extends BaseProcess
 	 * @param Process $process
 	 * @throws Exception
 	 */
-	public function onProcessExec(Process $process): void
+	public function process(Process $process): void
 	{
 		Timer::tick(300, [$this, 'loop']);
 	}
