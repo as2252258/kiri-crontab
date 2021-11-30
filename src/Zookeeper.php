@@ -4,7 +4,7 @@
 namespace Kiri\Crontab;
 
 
-use Annotation\Inject;
+use Note\Inject;
 use Exception;
 use Kiri\Cache\Redis;
 use Kiri\Error\Logger;
