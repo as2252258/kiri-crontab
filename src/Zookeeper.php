@@ -57,7 +57,6 @@ class Zookeeper extends BaseProcess
 
 
 	/**
-	 * @throws ConfigException
 	 * @throws Exception
 	 */
 	public function loop()
@@ -79,9 +78,9 @@ class Zookeeper extends BaseProcess
 	{
 		try {
 			$handler = $redis->get(Producer::CRONTAB_PREFIX . $value);
+			$redis->del(Producer::CRONTAB_PREFIX . $value);
 			if (!empty($handler)) {
 				$redis->hSet(Crontab::WAIT_END, $value, $handler);
-				$redis->del(Producer::CRONTAB_PREFIX . $value);
 				$this->manager->sendMessage(swoole_unserialize($handler), $this->getWorker());
 			}
 		} catch (Throwable $exception) {

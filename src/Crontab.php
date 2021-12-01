@@ -152,7 +152,6 @@ abstract class Crontab implements CrontabInterface
 	/**
 	 * @param $name_md5
 	 * @return bool|int
-	 * @throws NotFindClassException
 	 * @throws ReflectionException
 	 * @throws Exception
 	 */
