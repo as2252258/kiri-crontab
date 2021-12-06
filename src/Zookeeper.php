@@ -4,12 +4,11 @@
 namespace Kiri\Crontab;
 
 
-use Note\Inject;
 use Exception;
 use Kiri\Cache\Redis;
 use Kiri\Error\Logger;
-use Kiri\Exception\ConfigException;
 use Kiri\Kiri;
+use Note\Inject;
 use Server\Abstracts\BaseProcess;
 use Server\ServerManager;
 use Swoole\Process;
@@ -29,7 +28,7 @@ class Zookeeper extends BaseProcess
 	 */
 	private int $workerNum = 0;
 
-    public string $name = 'crontab zookeeper';
+	public string $name = 'crontab zookeeper';
 
 
 	/**
@@ -61,6 +60,10 @@ class Zookeeper extends BaseProcess
 	 */
 	public function loop($timerId)
 	{
+		if ($this->isStop()) {
+			Timer::clear($timerId);
+			return;
+		}
 		$redis = Kiri::getDi()->get(Redis::class);
 		$range = $this->loadCarobTask($redis);
 		foreach ($range as $value) {
