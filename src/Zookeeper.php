@@ -59,7 +59,7 @@ class Zookeeper extends BaseProcess
 	/**
 	 * @throws Exception
 	 */
-	public function loop()
+	public function loop($timerId)
 	{
 		$redis = Kiri::getDi()->get(Redis::class);
 		$range = $this->loadCarobTask($redis);
