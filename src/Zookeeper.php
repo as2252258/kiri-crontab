@@ -51,16 +51,23 @@ class Zookeeper extends BaseProcess
 	 */
 	public function process(Process $process): void
 	{
-		while (true) {
-			if ($this->isStop()) {
-				return;
-			}
-			$redis = Kiri::getDi()->get(Redis::class);
-			$range = $this->loadCarobTask($redis);
-			foreach ($range as $value) {
-				$this->dispatch($value, $redis);
-			}
-			usleep(100000);
+		Timer::tick(300, [$this, 'loop']);
+	}
+
+
+	/**
+	 * @throws Exception
+	 */
+	public function loop($timerId)
+	{
+		if ($this->isStop()) {
+			Timer::clear($timerId);
+			return;
+		}
+		$redis = Kiri::getDi()->get(Redis::class);
+		$range = $this->loadCarobTask($redis);
+		foreach ($range as $value) {
+			$this->dispatch($value, $redis);
 		}
 	}
 
@@ -77,7 +84,10 @@ class Zookeeper extends BaseProcess
 			$redis->del(Producer::CRONTAB_PREFIX . $value);
 			if (!empty($handler)) {
 				$redis->hSet(Crontab::WAIT_END, $value, $handler);
-				$this->manager->sendMessage(swoole_unserialize($handler), $this->getWorker());
+
+				/** @var CrontabInterface $serialize */
+				$serialize = swoole_unserialize($handler);
+				$serialize->process();
 			}
 		} catch (Throwable $exception) {
 			$this->logger->addError($exception);
