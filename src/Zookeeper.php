@@ -81,6 +81,7 @@ class Zookeeper extends BaseProcess
 	{
 		try {
 			$handler = $redis->get(Producer::CRONTAB_PREFIX . $value);
+			var_dump($handler);
 			$redis->del(Producer::CRONTAB_PREFIX . $value);
 			if (!empty($handler)) {
 				$redis->hSet(Crontab::WAIT_END, $value, $handler);
