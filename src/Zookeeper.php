@@ -51,23 +51,16 @@ class Zookeeper extends BaseProcess
 	 */
 	public function process(Process $process): void
 	{
-		Timer::tick(300, [$this, 'loop']);
-	}
-
-
-	/**
-	 * @throws Exception
-	 */
-	public function loop($timerId)
-	{
-		if ($this->isStop()) {
-			Timer::clear($timerId);
-			return;
-		}
-		$redis = Kiri::getDi()->get(Redis::class);
-		$range = $this->loadCarobTask($redis);
-		foreach ($range as $value) {
-			$this->dispatch($value, $redis);
+		while (true) {
+			if ($this->isStop()) {
+				return;
+			}
+			$redis = Kiri::getDi()->get(Redis::class);
+			$range = $this->loadCarobTask($redis);
+			foreach ($range as $value) {
+				$this->dispatch($value, $redis);
+			}
+			usleep(100000);
 		}
 	}
 
