@@ -6,9 +6,8 @@ namespace Kiri\Crontab;
 
 use Exception;
 use Kiri\Cache\Redis;
-use Kiri\Error\Logger;
 use Kiri\Kiri;
-use Note\Inject;
+use Psr\Log\LoggerInterface;
 use Server\Abstracts\BaseProcess;
 use Server\ServerManager;
 use Swoole\Process;
@@ -29,20 +28,6 @@ class Zookeeper extends BaseProcess
 	private int $workerNum = 0;
 
 	public string $name = 'crontab zookeeper';
-
-
-	/**
-	 * @var ServerManager|null
-	 */
-	#[Inject(ServerManager::class)]
-	public ?ServerManager $manager = null;
-
-
-	/**
-	 * @var Logger|null
-	 */
-	#[Inject(Logger::class)]
-	public ?Logger $logger = null;
 
 
 	/**
@@ -79,6 +64,7 @@ class Zookeeper extends BaseProcess
 	 */
 	private function dispatch($value, $redis)
 	{
+		$logger = Kiri::getDi()->get(LoggerInterface::class);
 		try {
 			$handler = $redis->get(Producer::CRONTAB_PREFIX . $value);
 			$redis->del(Producer::CRONTAB_PREFIX . $value);
@@ -90,7 +76,7 @@ class Zookeeper extends BaseProcess
 				$serialize->process();
 			}
 		} catch (Throwable $exception) {
-			$this->logger->addError($exception);
+			$logger->addError($exception);
 		}
 	}
 
@@ -101,7 +87,7 @@ class Zookeeper extends BaseProcess
 	 */
 	private function getWorker(): int
 	{
-		$settings = $this->manager->getSetting();
+		$settings = Kiri::getDi()->get(ServerManager::class)->getSetting();
 		if ($this->workerNum == 0) {
 			$this->workerNum = $settings['worker_num'] + ($settings['task_worker_num'] ?? 0);
 		}
