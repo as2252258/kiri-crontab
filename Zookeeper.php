@@ -10,6 +10,7 @@ use Kiri\Kiri;
 use Psr\Log\LoggerInterface;
 use Server\Abstracts\BaseProcess;
 use Server\ServerManager;
+use Swoole\Coroutine;
 use Swoole\Process;
 use Swoole\Timer;
 use Throwable;
@@ -69,11 +70,13 @@ class Zookeeper extends BaseProcess
 			$handler = $redis->get(Producer::CRONTAB_PREFIX . $value);
 			$redis->del(Producer::CRONTAB_PREFIX . $value);
 			if (!empty($handler)) {
-				$redis->hSet(Crontab::WAIT_END, $value, $handler);
-
-				/** @var CrontabInterface $serialize */
-				$serialize = swoole_unserialize($handler);
-				$serialize->process();
+				Coroutine::create(function ($handler) {
+					$serialize = swoole_unserialize($handler);
+					if (is_null($serialize)) {
+						return;
+					}
+					$serialize->process();
+				}, $handler);
 			}
 		} catch (Throwable $exception) {
 			$logger->addError($exception);

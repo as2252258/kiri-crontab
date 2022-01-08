@@ -8,8 +8,9 @@ use Exception;
 use JetBrains\PhpStorm\Pure;
 use Kiri\Application;
 use Kiri\Cache\Redis;
-use Kiri\Exception\NotFindClassException;
+use Kiri\Context;
 use Kiri\Kiri;
+use Psr\Log\LoggerInterface;
 use ReflectionException;
 
 /**
@@ -35,7 +36,7 @@ abstract class Crontab implements CrontabInterface
 	public bool $isLoop;
 
 
-	public int $timerId = -1;
+	public int $retry = 1;
 
 
 	/**
@@ -43,12 +44,14 @@ abstract class Crontab implements CrontabInterface
 	 * @param mixed $params
 	 * @param false $isLoop
 	 * @param int $tickTime
+	 * @param int $retry
 	 */
-	public function __construct(mixed $params, bool $isLoop = false, int $tickTime = 1)
+	public function __construct(mixed $params, bool $isLoop = false, int $tickTime = 1, int $retry = 1)
 	{
 		$this->params = $params;
 		$this->isLoop = $isLoop;
 		$this->tickTime = $tickTime;
+		$this->retry = $retry;
 	}
 
 
@@ -104,11 +107,31 @@ abstract class Crontab implements CrontabInterface
 
 
 	/**
-	 * @return int
+	 * @return array
 	 */
-	public function getTimerId(): int
+	public function __serialize(): array
 	{
-		return $this->timerId;
+		return [
+			'name'     => $this->name,
+			'params'   => $this->params,
+			'tickTime' => $this->tickTime,
+			'isLoop'   => $this->isLoop,
+			'retry'    => $this->retry
+		];
+	}
+
+
+	/**
+	 * @param array $data
+	 * @return void
+	 */
+	public function __unserialize(array $data): void
+	{
+		$this->name = $data['name'];
+		$this->params = $data['params'];
+		$this->tickTime = $data['tickTime'];
+		$this->isLoop = $data['isLoop'];
+		$this->retry = $data['retry'];
 	}
 
 
@@ -137,12 +160,18 @@ abstract class Crontab implements CrontabInterface
 			$redis = Kiri::getDi()->get(Redis::class);
 
 			$name_md5 = $this->getName();
+			$redis->hSet(Crontab::WAIT_END, $name_md5, serialize($this));
 
 			call_user_func([$this, 'execute']);
 
 			$redis->hDel(self::WAIT_END, $name_md5);
 		} catch (\Throwable $throwable) {
-			$this->application->addError($throwable, 'throwable');
+			$logger = Kiri::getDi()->get(LoggerInterface::class);
+			$logger->error('crontab execute fail.[' . $throwable->getMessage() . ']', [$throwable]);
+			if (Context::increment('retry.number') >= $this->retry) {
+				return;
+			}
+			$this->process();
 		} finally {
 			$this->onRecover($this->getName());
 		}
