@@ -16,7 +16,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Kiri\\Crontab\\": "src/"
+      "Kiri\\Crontab\\": "./"
      }
   },
   "require-dev": {
