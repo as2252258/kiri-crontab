@@ -3,7 +3,7 @@
 namespace Kiri\Crontab;
 
 use Psr\EventDispatcher\StoppableEventInterface;
-use Server\Contract\OnPipeMessageInterface;
+use Kiri\Server\Contract\OnPipeMessageInterface;
 
 interface CrontabInterface extends StoppableEventInterface, OnPipeMessageInterface
 {
