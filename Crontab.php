@@ -167,7 +167,7 @@ abstract class Crontab implements CrontabInterface
 			$redis->hDel(self::WAIT_END, $name_md5);
 		} catch (\Throwable $throwable) {
 			$logger = Kiri::getDi()->get(LoggerInterface::class);
-			$logger->error('crontab execute fail.[' . $throwable->getMessage() . ']', [$throwable]);
+			$logger->error('crontab execute fail.[' . $throwable->getMessage() . ']', [error_trigger_format($throwable)]);
 			if (Context::increment('retry.number') >= $this->retry) {
 				return;
 			}
