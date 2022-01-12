@@ -7,9 +7,9 @@ namespace Kiri\Crontab;
 use Exception;
 use Kiri\Cache\Redis;
 use Kiri\Kiri;
-use Psr\Log\LoggerInterface;
 use Kiri\Server\Abstracts\BaseProcess;
 use Kiri\Server\ServerManager;
+use Psr\Log\LoggerInterface;
 use Swoole\Coroutine;
 use Swoole\Process;
 use Swoole\Timer;
@@ -38,6 +38,16 @@ class Zookeeper extends BaseProcess
 	public function process(Process $process): void
 	{
 		Timer::tick(300, [$this, 'loop']);
+	}
+
+
+	/**
+	 * @param $message
+	 * @return void
+	 */
+	public function onBroadcast($message)
+	{
+		var_dump($message . '::' . static::class);
 	}
 
 
