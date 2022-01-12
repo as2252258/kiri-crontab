@@ -9,7 +9,7 @@ use JetBrains\PhpStorm\Pure;
 use Kiri\Application;
 use Kiri\Cache\Redis;
 use Kiri\Context;
-use Kiri\Kiri;
+use Kiri;
 use Psr\Log\LoggerInterface;
 use ReflectionException;
 

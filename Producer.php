@@ -7,7 +7,7 @@ namespace Kiri\Crontab;
 use Exception;
 use Kiri\Abstracts\Component;
 use Kiri\Cache\Redis;
-use Kiri\Kiri;
+use Kiri;
 
 
 /**
