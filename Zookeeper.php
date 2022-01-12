@@ -47,7 +47,8 @@ class Zookeeper extends BaseProcess
 	 */
 	public function onBroadcast($message)
 	{
-		var_dump($message . '::' . static::class);
+		$logger = Kiri::getDi()->get(LoggerInterface::class);
+		$logger->debug($message->data . '::' . static::class);
 	}
 
 
