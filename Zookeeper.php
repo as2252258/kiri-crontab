@@ -8,6 +8,7 @@ use Exception;
 use Kiri\Cache\Redis;
 use Kiri\Kiri;
 use Kiri\Server\Abstracts\BaseProcess;
+use Kiri\Server\Broadcast\OnBroadcastInterface;
 use Kiri\Server\ServerManager;
 use Psr\Log\LoggerInterface;
 use Swoole\Coroutine;
@@ -42,10 +43,10 @@ class Zookeeper extends BaseProcess
 
 
 	/**
-	 * @param $message
+	 * @param OnBroadcastInterface $message
 	 * @return void
 	 */
-	public function onBroadcast($message)
+	public function onBroadcast(OnBroadcastInterface $message): void
 	{
 		$logger = Kiri::getDi()->get(LoggerInterface::class);
 		$logger->debug($message->data . '::' . static::class);
