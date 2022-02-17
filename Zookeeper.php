@@ -5,13 +5,11 @@ namespace Kiri\Crontab;
 
 
 use Exception;
-use Kiri\Cache\Redis;
 use Kiri;
+use Kiri\Cache\Redis;
 use Kiri\Server\Abstracts\BaseProcess;
 use Kiri\Server\Broadcast\OnBroadcastInterface;
-use Kiri\Server\ServerManager;
 use Psr\Log\LoggerInterface;
-use Swoole\Coroutine;
 use Swoole\Process;
 use Swoole\Timer;
 use Throwable;
@@ -32,13 +30,17 @@ class Zookeeper extends BaseProcess
 	public string $name = 'crontab zookeeper';
 
 
+	protected bool $enable_coroutine = true;
+
+
 	/**
 	 * @param Process $process
 	 * @throws Exception
 	 */
 	public function process(Process $process): void
 	{
-		Timer::tick(300, [$this, 'loop']);
+		$logger = Kiri::getDi()->get(LoggerInterface::class);
+		Timer::tick(100, [$this, 'loop'], $logger);
 	}
 
 
@@ -56,66 +58,14 @@ class Zookeeper extends BaseProcess
 	/**
 	 * @throws Exception
 	 */
-	public function loop($timerId)
+	public function loop($timerId, $logger)
 	{
 		if ($this->isStop()) {
 			Timer::clear($timerId);
 			return;
 		}
 		$redis = Kiri::getDi()->get(Redis::class);
-		$range = $this->loadCarobTask($redis);
-		foreach ($range as $value) {
-			$this->dispatch($value, $redis);
-		}
-	}
 
-
-	/**
-	 * @param $value
-	 * @param $redis
-	 * @throws Exception
-	 */
-	private function dispatch($value, $redis)
-	{
-		$logger = Kiri::getDi()->get(LoggerInterface::class);
-		try {
-			$handler = $redis->get(Producer::CRONTAB_PREFIX . $value);
-			$redis->del(Producer::CRONTAB_PREFIX . $value);
-			if (!empty($handler)) {
-				Coroutine::create(function ($handler) {
-					$serialize = swoole_unserialize($handler);
-					if (is_null($serialize)) {
-						return;
-					}
-					$serialize->process();
-				}, $handler);
-			}
-		} catch (Throwable $exception) {
-			$logger->addError($exception);
-		}
-	}
-
-
-	/**
-	 * @return int
-	 * @throws Exception
-	 */
-	private function getWorker(): int
-	{
-		$settings = Kiri::getDi()->get(ServerManager::class)->getSetting();
-		if ($this->workerNum == 0) {
-			$this->workerNum = $settings['worker_num'] + ($settings['task_worker_num'] ?? 0);
-		}
-		return random_int(0, $this->workerNum - 1);
-	}
-
-
-	/**
-	 * @param Redis|\Redis $redis
-	 * @return array
-	 */
-	private function loadCarobTask(Redis|\Redis $redis): array
-	{
 		$script = <<<SCRIPT
 local _two = redis.call('zRangeByScore', KEYS[1], '0', ARGV[1])
 
@@ -125,7 +75,31 @@ end
 
 return _two
 SCRIPT;
-		return $redis->eval($script, [Producer::CRONTAB_KEY, (string)time()], 1);
+		$range = $redis->eval($script, [Producer::CRONTAB_KEY, (string)time()], 1);
+		foreach ($range as $value) {
+			try {
+				$handler = $redis->get(Producer::CRONTAB_PREFIX . $value);
+				$redis->del(Producer::CRONTAB_PREFIX . $value);
+				if (!empty($handler)) {
+					$this->execute($handler);
+				}
+			} catch (Throwable $exception) {
+				$logger->addError($exception);
+			}
+		}
 	}
+
+
+	private function execute($handler)
+	{
+		go(function () use ($handler) {
+			$serialize = swoole_unserialize($handler);
+			if (is_null($serialize)) {
+				return;
+			}
+			$serialize->process();
+		});
+	}
+
 
 }
