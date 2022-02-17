@@ -22,11 +22,6 @@ class Zookeeper extends BaseProcess
 {
 
 
-	/**
-	 * @var int
-	 */
-	private int $workerNum = 0;
-
 	public string $name = 'crontab zookeeper';
 
 
