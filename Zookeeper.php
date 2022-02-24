@@ -6,7 +6,7 @@ namespace Kiri\Crontab;
 
 use Exception;
 use Kiri;
-use Kiri\Cache\Redis;
+use Kiri\Redis\Redis;
 use Kiri\Server\Abstracts\BaseProcess;
 use Kiri\Server\Broadcast\OnBroadcastInterface;
 use Psr\Log\LoggerInterface;
