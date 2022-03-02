@@ -28,7 +28,7 @@ class Zookeeper extends BaseProcess
 	protected bool $enable_coroutine = true;
 
 
-	public int $timerId;
+	public ?int $timerId = null;
 
 
 	/**
