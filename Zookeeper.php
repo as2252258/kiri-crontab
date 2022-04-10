@@ -54,6 +54,9 @@ class Zookeeper extends BaseProcess
     }
 
 
+    /**
+     * @return $this
+     */
     public function onSigterm(): static
     {
         Coroutine::create(function () {
