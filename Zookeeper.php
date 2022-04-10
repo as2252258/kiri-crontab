@@ -10,7 +10,8 @@ use Kiri\Redis\Redis;
 use Kiri\Server\Abstracts\BaseProcess;
 use Kiri\Server\Broadcast\OnBroadcastInterface;
 use Psr\Log\LoggerInterface;
-use Swoole\Coroutine;
+use Kiri\Server\Events\OnWorkerExit;
+use Kiri\Events\EventDispatch;
 use Swoole\Process;
 use Swoole\Timer;
 use Throwable;
@@ -59,6 +60,9 @@ class Zookeeper extends BaseProcess
         Process::signal(SIGTERM, function () {
             var_dump(func_get_args());
             $this->isStop = true;
+
+            $event = Kiri::getDi()->get(EventDispatch::class);
+            $event->dispatch(new OnWorkerExit(null,0));
         });
         return $this;
     }
