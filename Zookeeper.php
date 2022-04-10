@@ -39,7 +39,7 @@ class Zookeeper extends BaseProcess
     public function process(Process $process): void
     {
         $logger = Kiri::getDi()->get(LoggerInterface::class);
-        $this->timerId = Timer::tick(100, [$this, 'loop'], $logger);
+        Timer::tick(100, [$this, 'loop'], $logger);
     }
 
 
@@ -58,8 +58,9 @@ class Zookeeper extends BaseProcess
     {
         Coroutine::create(function () {
             $data = Coroutine::waitSignal(SIGTERM, -1);
-            var_dump($data);
             if ($data) {
+                Timer::clear($this->timerId);
+
                 $this->isStop = true;
             }
         });
@@ -72,10 +73,8 @@ class Zookeeper extends BaseProcess
      */
     public function loop($timerId, $logger)
     {
-        if ($this->isStop()) {
-            Timer::clear($timerId);
-            return;
-        }
+        $this->timerId = $timerId;
+
         $redis = Kiri::getDi()->get(Redis::class);
 
         $script = <<<SCRIPT
