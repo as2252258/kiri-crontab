@@ -36,16 +36,7 @@ class Zookeeper extends BaseProcess
     public function process(Process $process): void
     {
         $logger = Kiri::getDi()->get(LoggerInterface::class);
-//        $this->timerId = Timer::tick(100, [$this, 'loop'], $logger);
-
-        while (true) {
-            if ($this->isStop()) {
-                break;
-            }
-            $this->loop($logger);
-
-            usleep(100 * 1000);
-        }
+        $this->timerId = Timer::tick(100, [$this, 'loop'], $logger);
     }
 
 
@@ -66,7 +57,7 @@ class Zookeeper extends BaseProcess
     public function onSigterm(): static
     {
         pcntl_signal(SIGTERM, function () {
-            $this->isStop = true;
+            Timer::clear($this->timerId);
         });
         return $this;
     }
