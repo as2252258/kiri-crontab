@@ -56,8 +56,10 @@ class Zookeeper extends BaseProcess
      */
     public function onSigterm(): static
     {
-        pcntl_signal(SIGTERM, static function () {
-            Timer::clearAll();
+        $static = $this;
+        pcntl_signal(SIGTERM, static function () use ($static) {
+            var_dump(func_get_args());
+            $static->isStop = true;
         });
         return $this;
     }
@@ -68,6 +70,10 @@ class Zookeeper extends BaseProcess
      */
     public function loop($timerId, $logger)
     {
+        if ($this->isStop()) {
+            Timer::clear($timerId);
+            return;
+        }
         $redis = Kiri::getDi()->get(Redis::class);
 
         $script = <<<SCRIPT
