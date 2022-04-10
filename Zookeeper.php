@@ -39,7 +39,7 @@ class Zookeeper extends BaseProcess
     public function process(Process $process): void
     {
         $logger = Kiri::getDi()->get(LoggerInterface::class);
-        Timer::tick(100, [$this, 'loop'], $logger);
+        $this->timerId = Timer::tick(100, [$this, 'loop'], $logger);
     }
 
 
@@ -73,8 +73,6 @@ class Zookeeper extends BaseProcess
      */
     public function loop($timerId, $logger)
     {
-        $this->timerId = $timerId;
-
         $redis = Kiri::getDi()->get(Redis::class);
 
         $script = <<<SCRIPT
