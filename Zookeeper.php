@@ -58,6 +58,7 @@ class Zookeeper extends BaseProcess
     {
         Coroutine::create(function () {
             $data = Coroutine::waitSignal(SIGTERM, -1);
+            var_dump($data);
             if ($data) {
                 $this->isStop = true;
             }
