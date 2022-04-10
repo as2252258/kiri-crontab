@@ -26,9 +26,6 @@ class Zookeeper extends BaseProcess
     public string $name = 'crontab zookeeper';
 
 
-    protected bool $enable_coroutine = true;
-
-
     public ?int $timerId = null;
 
 
@@ -39,7 +36,16 @@ class Zookeeper extends BaseProcess
     public function process(Process $process): void
     {
         $logger = Kiri::getDi()->get(LoggerInterface::class);
-        $this->timerId = Timer::tick(100, [$this, 'loop'], $logger);
+//        $this->timerId = Timer::tick(100, [$this, 'loop'], $logger);
+
+        while (true) {
+            if ($this->isStop()) {
+                break;
+            }
+            $this->loop($logger);
+
+            usleep(100 * 1000);
+        }
     }
 
 
@@ -59,23 +65,19 @@ class Zookeeper extends BaseProcess
      */
     public function onSigterm(): static
     {
-        Coroutine::create(function () {
-            $data = Coroutine::waitSignal(SIGTERM, -1);
-            if ($data) {
-                Timer::clear($this->timerId);
+        pcntl_signal(SIGTERM, function () {
+            $this->isStop = true;
 
-                $this->isStop = true;
-            }
+            Timer::clear($this->timerId);
         });
         return $this;
     }
 
 
-
     /**
      * @throws Exception
      */
-    public function loop($timerId, $logger)
+    public function loop($logger)
     {
         $redis = Kiri::getDi()->get(Redis::class);
 
@@ -103,15 +105,19 @@ SCRIPT;
     }
 
 
+    /**
+     * @param $handler
+     * @return void
+     * @throws Exception
+     */
     private function execute($handler)
     {
-        go(function () use ($handler) {
-            $serialize = swoole_unserialize($handler);
-            if (is_null($serialize)) {
-                return;
-            }
-            $serialize->process();
-        });
+        $swoole = Kiri::getDi()->get(Kiri\Server\SwooleServerInterface::class);
+
+        $max = $swoole->setting['worker_num'] + ($swoole->setting['task_worker_num'] ?? 0);
+
+        $swoole->sendMessage($handler, random_int(0, $max - 1));
+
     }
 
 
