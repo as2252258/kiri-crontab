@@ -56,8 +56,7 @@ class Zookeeper extends BaseProcess
      */
     public function onSigterm(): static
     {
-        pcntl_signal(SIGTERM, function () {
-            $this->isStop = true;
+        pcntl_signal(SIGTERM, static function () {
             Timer::clearAll();
         });
         return $this;
