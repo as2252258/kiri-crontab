@@ -45,6 +45,10 @@ class Zookeeper extends BaseProcess
             }
             $this->loop($logger);
         }
+
+        $redis = Kiri::getDi()->get(Redis::class);
+        $redis->release();
+
     }
 
 
@@ -61,16 +65,11 @@ class Zookeeper extends BaseProcess
 
     /**
      * @return $this
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
      */
     public function onSigterm(): static
     {
         pcntl_signal(SIGTERM, function () {
             $this->isStop = true;
-
-            $event = Kiri::getDi()->get(EventDispatch::class);
-            $event->dispatch(new OnWorkerExit(null,0));
         });
         return $this;
     }
