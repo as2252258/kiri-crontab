@@ -29,6 +29,8 @@ class Zookeeper extends BaseProcess
     public string $name = 'crontab zookeeper';
 
 
+    public Process $process;
+
     public ?int $timerId = null;
 
 
@@ -38,6 +40,7 @@ class Zookeeper extends BaseProcess
      */
     public function process(Process $process): void
     {
+        $this->process = $process;
         $logger = Kiri::getDi()->get(LoggerInterface::class);
         while (true) {
             if ($this->isStop()) {
@@ -48,7 +51,6 @@ class Zookeeper extends BaseProcess
 
         $redis = Kiri::getDi()->get(Redis::class);
         $redis->release();
-
     }
 
 
@@ -65,11 +67,19 @@ class Zookeeper extends BaseProcess
 
     /**
      * @return $this
+     * @throws Kiri\Exception\ConfigException
      */
     public function onSigterm(): static
     {
         pcntl_signal(SIGTERM, function () {
             $this->isStop = true;
+
+            $redis = Kiri::getDi()->get(Redis::class);
+            $redis->release();
+
+            var_dump(func_get_args());
+
+            $this->process->exit(0);
         });
         return $this;
     }
