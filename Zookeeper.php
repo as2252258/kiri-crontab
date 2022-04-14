@@ -9,6 +9,8 @@ use Kiri;
 use Kiri\Redis\Redis;
 use Kiri\Server\Abstracts\BaseProcess;
 use Kiri\Server\Broadcast\OnBroadcastInterface;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerInterface;
 use Kiri\Server\Events\OnWorkerExit;
 use Kiri\Events\EventDispatch;
@@ -37,7 +39,12 @@ class Zookeeper extends BaseProcess
     public function process(Process $process): void
     {
         $logger = Kiri::getDi()->get(LoggerInterface::class);
-        Timer::tick(100, [$this, 'loop'], $logger);
+        while (true) {
+            if ($this->isStop()) {
+                break;
+            }
+            $this->loop($logger);
+        }
     }
 
 
@@ -54,11 +61,12 @@ class Zookeeper extends BaseProcess
 
     /**
      * @return $this
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function onSigterm(): static
     {
-        Process::signal(SIGTERM, function () {
-            var_dump(func_get_args());
+        pcntl_signal(SIGTERM, function () {
             $this->isStop = true;
 
             $event = Kiri::getDi()->get(EventDispatch::class);
@@ -71,12 +79,8 @@ class Zookeeper extends BaseProcess
     /**
      * @throws Exception
      */
-    public function loop($timerId, $logger)
+    public function loop($logger)
     {
-        if ($this->isStop()) {
-            Timer::clear($timerId);
-            return;
-        }
         $redis = Kiri::getDi()->get(Redis::class);
 
         $script = <<<SCRIPT
@@ -115,7 +119,6 @@ SCRIPT;
         $max = $swoole->setting['worker_num'] + ($swoole->setting['task_worker_num'] ?? 0);
 
         $swoole->sendMessage($handler, random_int(0, $max - 1));
-
     }
 
 
