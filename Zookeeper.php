@@ -48,9 +48,6 @@ class Zookeeper extends BaseProcess
             }
             $this->loop($logger);
         }
-
-        $redis = Kiri::getDi()->get(Redis::class);
-        $redis->release();
     }
 
 
@@ -76,8 +73,6 @@ class Zookeeper extends BaseProcess
 
             $redis = Kiri::getDi()->get(Redis::class);
             $redis->release();
-
-            var_dump(func_get_args());
 
             $this->process->exit(0);
         });
