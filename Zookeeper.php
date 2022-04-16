@@ -74,7 +74,7 @@ class Zookeeper extends BaseProcess
             $this->onProcessStop();
 
             $redis = Kiri::getDi()->get(Redis::class);
-            $redis->release();
+            $redis->destroy();
 
             Timer::clearAll();
         });
