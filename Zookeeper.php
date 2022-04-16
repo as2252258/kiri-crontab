@@ -42,19 +42,20 @@ class Zookeeper extends BaseProcess
     {
         $this->process = $process;
         $logger = Kiri::getDi()->get(LoggerInterface::class);
+
+        $redis = Kiri::getDi()->get(Redis::class);
         while (true) {
             if ($this->isStop()) {
                 break;
             }
-            $this->loop($logger);
+            $this->loop($redis, $logger);
 
             usleep(100 * 1000);
         }
 
-        $redis = Kiri::getDi()->get(Redis::class);
         $redis->destroy();
 
-        Timer::clearAll();
+        $process->exit(0);
     }
 
 
@@ -84,10 +85,8 @@ class Zookeeper extends BaseProcess
     /**
      * @throws Exception
      */
-    public function loop($logger)
+    public function loop($redis, $logger)
     {
-        $redis = Kiri::getDi()->get(Redis::class);
-
         $script = <<<SCRIPT
 local _two = redis.call('zRangeByScore', KEYS[1], '0', ARGV[1])
 
