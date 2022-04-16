@@ -51,7 +51,10 @@ class Zookeeper extends BaseProcess
             usleep(100 * 1000);
         }
 
-        $logger->warning('Process (' . $this->getName() . ') stop.');
+        $redis = Kiri::getDi()->get(Redis::class);
+        $redis->destroy();
+
+        Timer::clearAll();
     }
 
 
@@ -74,11 +77,6 @@ class Zookeeper extends BaseProcess
     {
         pcntl_signal(SIGTERM, function () {
             $this->onProcessStop();
-
-            $redis = Kiri::getDi()->get(Redis::class);
-            $redis->destroy();
-
-            Timer::clearAll();
         });
         return $this;
     }
@@ -120,13 +118,13 @@ SCRIPT;
      * @return void
      * @throws Exception
      */
-    private function execute($handler)
+    private function execute($handler): void
     {
-        $swoole = Kiri::getDi()->get(Kiri\Server\SwooleServerInterface::class);
+        $swollen = Kiri::getDi()->get(Kiri\Server\SwooleServerInterface::class);
 
-        $max = $swoole->setting['worker_num'] + ($swoole->setting['task_worker_num'] ?? 0);
+        $max = $swollen->setting['worker_num'] + ($swollen->setting['task_worker_num'] ?? 0);
 
-        $swoole->sendMessage($handler, random_int(0, $max - 1));
+        $swollen->sendMessage($handler, random_int(0, $max - 1));
     }
 
 
