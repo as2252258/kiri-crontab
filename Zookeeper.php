@@ -48,6 +48,8 @@ class Zookeeper extends BaseProcess
                 break;
             }
             $this->loop($logger);
+
+            usleep(100 * 1000);
         }
     }
 
