@@ -71,7 +71,6 @@ class Zookeeper extends BaseProcess
 
     /**
      * @return $this
-     * @throws Kiri\Exception\ConfigException
      */
     public function onSigterm(): static
     {
