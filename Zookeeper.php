@@ -43,7 +43,6 @@ class Zookeeper extends BaseProcess
         $this->process = $process;
         $logger = Kiri::getDi()->get(LoggerInterface::class);
         while (true) {
-            var_dump($this->isStop());
             if ($this->isStop()) {
                 break;
             }
@@ -77,7 +76,7 @@ class Zookeeper extends BaseProcess
             $redis = Kiri::getDi()->get(Redis::class);
             $redis->release();
 
-//            $this->process->exit(0);
+            Timer::clearAll();
         });
         return $this;
     }
