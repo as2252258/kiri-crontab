@@ -50,6 +50,8 @@ class Zookeeper extends BaseProcess
 
             usleep(100 * 1000);
         }
+
+        $logger->warning('Process (' . $this->getName() . ') stop.');
     }
 
 
