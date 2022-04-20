@@ -78,8 +78,6 @@ class Zookeeper extends BaseProcess
         $application = $this;
         pcntl_signal(SIGTERM, static function () use ($application) {
             $application->onProcessStop();
-
-            pcntl_wait($status);
         });
         return $this;
     }
