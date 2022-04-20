@@ -76,7 +76,7 @@ class Zookeeper extends BaseProcess
     public function onSigterm(): static
     {
         $application = $this;
-        pcntl_signal(SIGTERM, static function () use ($application) {
+        Process::signal(SIGTERM, static function () use ($application) {
             $application->onProcessStop();
         });
         return $this;
