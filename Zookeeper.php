@@ -9,13 +9,8 @@ use Kiri;
 use Kiri\Redis\Redis;
 use Kiri\Server\Abstracts\BaseProcess;
 use Kiri\Server\Broadcast\OnBroadcastInterface;
-use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerInterface;
-use Kiri\Server\Events\OnWorkerExit;
-use Kiri\Events\EventDispatch;
 use Swoole\Process;
-use Swoole\Timer;
 use Throwable;
 
 /**
