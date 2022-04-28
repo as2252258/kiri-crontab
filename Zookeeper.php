@@ -116,9 +116,9 @@ SCRIPT;
     {
         $swollen = Kiri::getDi()->get(Kiri\Server\SwooleServerInterface::class);
 
-        $max = $swollen->setting['worker_num'] + ($swollen->setting['task_worker_num'] ?? 0);
+        $max = $swollen->setting['worker_num'] -1;
 
-        $swollen->sendMessage($handler, random_int(0, $max - 1));
+        $swollen->sendMessage($handler, random_int(0, $max));
     }
 
 
