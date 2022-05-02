@@ -11,6 +11,7 @@ use Kiri\Server\Abstracts\BaseProcess;
 use Kiri\Server\Broadcast\OnBroadcastInterface;
 use Psr\Log\LoggerInterface;
 use Swoole\Process;
+use Swoole\Timer;
 use Throwable;
 
 /**
@@ -47,10 +48,9 @@ class Zookeeper extends BaseProcess
 
             usleep(100 * 1000);
         }
-
         $redis->destroy();
 
-        $process->exit(0);
+        Timer::clearAll();
     }
 
 
