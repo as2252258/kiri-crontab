@@ -114,7 +114,7 @@ SCRIPT;
      */
     private function execute($handler): void
     {
-        $swollen = Kiri::getDi()->get(Kiri\Server\SwooleServerInterface::class);
+        $swollen = Kiri::getDi()->get(Kiri\Server\ServerInterface::class);
 
         $max = $swollen->setting['worker_num'] -1;
 
