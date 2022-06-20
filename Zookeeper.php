@@ -22,68 +22,68 @@ class Zookeeper extends BaseProcess
 {
 
 
-    public string $name = 'crontab zookeeper';
+	public string $name = 'crontab zookeeper';
 
 
-    public Process $process;
+	public Process $process;
 
-    public ?int $timerId = null;
-
-
-    /**
-     * @param Process $process
-     * @throws Exception
-     */
-    public function process(Process $process): void
-    {
-        $this->process = $process;
-        $logger = Kiri::getDi()->get(LoggerInterface::class);
-
-        $redis = Kiri::getDi()->get(Redis::class);
-        while (true) {
-            if ($this->isStop()) {
-                break;
-            }
-            $this->loop($redis, $logger);
-
-            usleep(100 * 1000);
-        }
-        $redis->destroy();
-
-        Timer::clearAll();
-    }
+	public ?int $timerId = null;
 
 
-    /**
-     * @param OnBroadcastInterface $message
-     * @return void
-     */
-    public function onBroadcast(OnBroadcastInterface $message): void
-    {
-        $logger = Kiri::getDi()->get(LoggerInterface::class);
-        $logger->debug($message->data . '::' . static::class);
-    }
+	/**
+	 * @param Process $process
+	 * @throws Exception
+	 */
+	public function process(Process $process): void
+	{
+		$this->process = $process;
+		$logger = Kiri::getDi()->get(LoggerInterface::class);
+
+		$redis = Kiri::getDi()->get(Redis::class);
+		while (true) {
+			if ($this->isStop()) {
+				break;
+			}
+			$this->loop($redis, $logger);
+
+			usleep(100 * 1000);
+		}
+		$redis->destroy();
+
+		Timer::clearAll();
+	}
 
 
-    /**
-     * @return $this
-     */
-    public function onSigterm(): static
-    {
-        $application = $this;
-        Process::signal(SIGTERM, static function () use ($application) {
-            $application->onProcessStop();
-        });
-        return $this;
-    }
+	/**
+	 * @param OnBroadcastInterface $message
+	 * @return void
+	 */
+	public function onBroadcast(OnBroadcastInterface $message): void
+	{
+		$logger = Kiri::getDi()->get(LoggerInterface::class);
+		$logger->debug($message->data . '::' . static::class);
+	}
 
 
-    /**
-     * @throws Exception
-     */
-    public function loop($redis, $logger)
-    {
-        $script = <<<SCRIPT
+	/**
+	 * @return $this
+	 */
+	public function onSigterm(): static
+	{
+		$application = $this;
+		Process::signal(SIGTERM, static function () use ($application) {
+			$application->onProcessStop();
+		});
+		return $this;
+	}
+
+
+	/**
+	 * @throws Exception
+	 */
+	public function loop($redis, $logger)
+	{
+		$script = <<<SCRIPT
 local _two = redis.call('zRangeByScore', KEYS[1], '0', ARGV[1])
 
 if (table.getn(_two) > 0) then
@@ -92,34 +92,37 @@ end
 
 return _two
 SCRIPT;
-        $range = $redis->eval($script, [Producer::CRONTAB_KEY, (string)time()], 1);
-        foreach ($range as $value) {
-            try {
-                $handler = $redis->get(Producer::CRONTAB_PREFIX . $value);
-                $redis->del(Producer::CRONTAB_PREFIX . $value);
-                if (!empty($handler)) {
-                    $this->execute($handler);
-                }
-            } catch (Throwable $exception) {
-                $logger->addError($exception);
-            }
-        }
-    }
+		$range = $redis->eval($script, [Producer::CRONTAB_KEY, (string)time()], 1);
+		if (!$range) {
+			return;
+		}
+		foreach ($range as $value) {
+			try {
+				$handler = $redis->get(Producer::CRONTAB_PREFIX . $value);
+				$redis->del(Producer::CRONTAB_PREFIX . $value);
+				if (!empty($handler)) {
+					$this->execute($handler);
+				}
+			} catch (Throwable $exception) {
+				$logger->addError($exception);
+			}
+		}
+	}
 
 
-    /**
-     * @param $handler
-     * @return void
-     * @throws Exception
-     */
-    private function execute($handler): void
-    {
-        $swollen = Kiri::getDi()->get(Kiri\Server\ServerInterface::class);
+	/**
+	 * @param $handler
+	 * @return void
+	 * @throws Exception
+	 */
+	private function execute($handler): void
+	{
+		$swollen = Kiri::getDi()->get(Kiri\Server\ServerInterface::class);
 
-        $max = $swollen->setting['worker_num'] -1;
+		$max = $swollen->setting['worker_num'] - 1;
 
-        $swollen->sendMessage($handler, random_int(0, $max));
-    }
+		$swollen->sendMessage($handler, random_int(0, $max));
+	}
 
 
 }
