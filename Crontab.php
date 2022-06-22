@@ -6,7 +6,7 @@ namespace Kiri\Crontab;
 
 use Exception;
 use JetBrains\PhpStorm\Pure;
-use Kiri\Application;
+use Kiri\Main;
 use Kiri\Redis\Redis;
 use Kiri\Context;
 use Kiri;
@@ -16,7 +16,6 @@ use ReflectionException;
 /**
  * Class Async
  * @package Kiri
- * @property Application $application
  */
 abstract class Crontab implements CrontabInterface
 {
@@ -52,15 +51,6 @@ abstract class Crontab implements CrontabInterface
 		$this->isLoop = $isLoop;
 		$this->tickTime = $tickTime;
 		$this->retry = $retry;
-	}
-
-
-	/**
-	 * @return Application
-	 */
-	#[Pure] private function getApplication(): Application
-	{
-		return Kiri::app();
 	}
 
 
@@ -141,9 +131,6 @@ abstract class Crontab implements CrontabInterface
 	 */
 	#[Pure] public function __get($name): mixed
 	{
-		if ($name === 'application') {
-			return $this->getApplication();
-		}
 		if (!isset($this->params[$name])) {
 			return null;
 		}
@@ -167,7 +154,7 @@ abstract class Crontab implements CrontabInterface
 			$redis->hDel(self::WAIT_END, $name_md5);
 		} catch (\Throwable $throwable) {
 			$logger = Kiri::getDi()->get(LoggerInterface::class);
-			$logger->error('crontab execute fail.[' . $throwable->getMessage() . ']', [error_trigger_format($throwable)]);
+			$logger->error('crontab execute fail.[' . $throwable->getMessage() . ']', [throwable($throwable)]);
 			if (Context::increment('retry.number') >= $this->retry) {
 				return;
 			}

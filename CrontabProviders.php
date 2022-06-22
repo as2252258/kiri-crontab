@@ -4,14 +4,13 @@
 namespace Kiri\Crontab;
 
 
-use Exception;
-use ReflectionException;
+use Kiri\Di\LocalService;
+use Kiri\Server\Server;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Kiri\Abstracts\Config;
 use Kiri\Abstracts\Providers;
-use Kiri\Application;
-use Kiri\Exception\ComponentException;
 use Kiri\Exception\ConfigException;
-use Kiri\Exception\NotFindClassException;
 
 
 /**
@@ -23,13 +22,15 @@ class CrontabProviders extends Providers
 
 
 	/**
-	 * @param Application $application
+	 * @param LocalService $application
+	 * @return void
 	 * @throws ConfigException
-	 * @throws Exception
+	 * @throws ContainerExceptionInterface
+	 * @throws NotFoundExceptionInterface
 	 */
-    public function onImport(Application $application)
+    public function onImport(LocalService $application): void
     {
-        $server = $application->getServer();
+        $server = $this->container->get(Server::class);
         if (Config::get('crontab.enable') !== true) {
             return;
         }
