@@ -49,10 +49,7 @@ class Zookeeper extends BaseProcess
 		$logger = Kiri::getDi()->get(LoggerInterface::class);
 
 		$redis = Kiri::getDi()->get(Redis::class);
-		while (true) {
-			if ($this->isStop()) {
-				break;
-			}
+		while ($this->isStop() === false) {
 			$this->loop($redis, $logger);
 
 			usleep(100 * 1000);
