@@ -21,13 +21,22 @@ use Throwable;
 class Zookeeper extends BaseProcess
 {
 
-
+	/**
+	 * @var string
+	 */
 	public string $name = 'crontab zookeeper';
 
 
+	/**
+	 * @var Process
+	 */
 	public Process $process;
 
-	public ?int $timerId = null;
+
+	/**
+	 * @var bool
+	 */
+	protected bool $enable_coroutine = false;
 
 
 	/**
@@ -49,8 +58,18 @@ class Zookeeper extends BaseProcess
 			usleep(100 * 1000);
 		}
 		$redis->destroy();
+	}
 
-		Timer::clearAll();
+
+	/**
+	 * @return $this
+	 */
+	public function onSigterm(): static
+	{
+		pcntl_signal(SIGTERM, function () {
+			$this->onProcessStop();
+		});
+		return $this;
 	}
 
 
