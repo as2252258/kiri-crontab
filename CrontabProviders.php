@@ -4,6 +4,7 @@
 namespace Kiri\Crontab;
 
 
+use Exception;
 use Kiri\Di\LocalService;
 use Kiri\Server\Server;
 use Psr\Container\ContainerExceptionInterface;
@@ -19,14 +20,15 @@ use Kiri\Exception\ConfigException;
  */
 class CrontabProviders extends Providers
 {
-
-
+	
+	
 	/**
 	 * @param LocalService $application
 	 * @return void
 	 * @throws ConfigException
 	 * @throws ContainerExceptionInterface
 	 * @throws NotFoundExceptionInterface
+	 * @throws Exception
 	 */
     public function onImport(LocalService $application): void
     {
