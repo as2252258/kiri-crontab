@@ -3,9 +3,9 @@
 namespace PHPSTORM_META {
 
     // Reflect
-	use Kiri\Context;
 	use Kiri\Di\Container;
 	use Kiri\Di\ContainerInterface;
+	use Kiri\Di\Context;
 
 	override(ContainerInterface::get(0), map('@'));
 	override(Container::make(0), map('@'));

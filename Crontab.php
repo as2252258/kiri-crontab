@@ -6,10 +6,9 @@ namespace Kiri\Crontab;
 
 use Exception;
 use JetBrains\PhpStorm\Pure;
-use Kiri\Main;
-use Kiri\Redis\Redis;
-use Kiri\Context;
 use Kiri;
+use Kiri\Di\Context;
+use Kiri\Redis\Redis;
 use Psr\Log\LoggerInterface;
 use ReflectionException;
 
