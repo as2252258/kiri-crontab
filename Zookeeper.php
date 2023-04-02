@@ -6,6 +6,7 @@ namespace Kiri\Crontab;
 
 use Exception;
 use Kiri;
+use Kiri\Exception\ConfigException;
 use Kiri\Redis\Redis;
 use Kiri\Server\Abstracts\BaseProcess;
 use Kiri\Server\Broadcast\OnBroadcastInterface;
@@ -28,9 +29,9 @@ class Zookeeper extends BaseProcess
 
 
 	/**
-	 * @var Process
+	 * @var Process|null
 	 */
-	public Process $process;
+	public ?Process $process;
 
 
 	/**
@@ -40,10 +41,10 @@ class Zookeeper extends BaseProcess
 
 
 	/**
-	 * @param Process $process
-	 * @throws Exception
+	 * @param Process|null $process
+	 * @throws ConfigException
 	 */
-	public function process(Process $process): void
+	public function process(?Process $process): void
 	{
 		$this->process = $process;
 		$logger = Kiri::getDi()->get(LoggerInterface::class);
